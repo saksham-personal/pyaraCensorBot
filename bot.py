@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 import dotenv
 import os
+from datetime import datetime
 
 # Load environment variables (ensure you have a .env file with DISCORD_BOT_TOKEN defined)
 dotenv.load_dotenv()
@@ -55,27 +56,27 @@ CENSOR_MAP = {
     'b': ['8', 'ß', 'β'],
     'c': ['<', 'ç', '¢', 'ϛ', 'Ͻ'],
     'd': ['đ', 'ð', 'ɗ', 'Δ'],
-    'e': ['3','ë','€', '𝜺', '𝟄'],
+    'e': ['3', 'ë', '€', '𝜺', '𝟄'],
     'f': ['ƒ', 'ꜰ', 'ᶠ', 'Ꞙ', 'ℱ'],
     'g': ['9', 'ġ', '⅁', 'ᶃ'],
     'h': ['#', 'ħ', 'һ', '𝚷'],
     'i': ['1', '!', '|', 'í', 'ï', 'î', 'ì', 'ι'],
     'j': ['ĵ', 'ʝ', 'Ʝ', 'ᴶ'],          # removed 'j'
-    'k': ['κ', 'ꝁ', 'ᴷ', '𝛋'],                   # removed 'k'
-    'l': ['1', 'ł', 'ӏ', 'ḷ', "ℓ"],     # removed 'l'
-    'm': ['ꟿ', 'ṃ', 'ɱ','ꟽ', 'Ⲙ'],
-    'n': ['ŋ', 'ն', 'ꞃ', 'ͷ'],     # removed 'n'
-    'o': ['0', 'ϴ', 'ö', 'ø', 'º','〇', '𝞡'],
+    'k': ['κ', 'ꝁ', 'ᴷ', '𝛋'],          # removed 'k'
+    'l': ['1', 'ł', 'ӏ', 'ḷ', 'ℓ'],      # removed 'l'
+    'm': ['ꟿ', 'ṃ', 'ɱ', 'ꟽ', 'Ⲙ'],
+    'n': ['ŋ', 'ն', 'ꞃ', 'ͷ'],           # removed 'n'
+    'o': ['0', 'ϴ', 'ö', 'ø', 'º', '〇', '𝞡'],
     'p': ['þ', 'ϼ', '𝝆', 'ϱ'],
-    'q': ['ℚ', 'ɋ', 'Ꝗ','Ϙ'],                   # removed 'q'
-    'r': ['®', 'Ϡ', 'ʁ', 'Γ'],                   # removed 'r'
+    'q': ['ℚ', 'ɋ', 'Ꝗ', 'Ϙ'],          # removed 'q'
+    'r': ['®', 'Ϡ', 'ʁ', 'Γ'],          # removed 'r'
     's': ['$', '5', '§', 'ʂ'],
     't': ['7', '+', '†', 'τ'],
-    'u': ['ú', 'ü', 'û', 'ù', 'v'],  # removed 'u'
-    'v': ['ⱽ', 'ꝟ', '𝛝', 'ϑ'],           
-    'w': ['ŵ', 'ω', '𝞏', 'ῷ'],                   # removed 'w'
-    'x': ['χ', 'ҳ', '𝛞', '⤫'],         # removed 'x'
-    'y': ['ÿ', '𝟁', '𝛹', '𝜓'],         # removed 'y'
+    'u': ['ú', 'ü', 'û', 'ù', 'v'],      # removed 'u'
+    'v': ['ⱽ', 'ꝟ', '𝛝', 'ϑ'],
+    'w': ['ŵ', 'ω', '𝞏', 'ῷ'],           # removed 'w'
+    'x': ['χ', 'ҳ', '𝛞', '⤫'],          # removed 'x'
+    'y': ['ÿ', '𝟁', '𝛹', '𝜓'],          # removed 'y'
     'z': ['2', 'ž', 'ʐ', 'ζ']
 }
 
@@ -89,7 +90,7 @@ def censor_word(word: str) -> str:
     """
     Returns a partially censored version of an offensive word by replacing 1–2 characters.
     Only eligible characters (alphanumeric) are replaced.
-    With a 30% chance, a blackout symbol from CENSOR_CHARS is used (only once per word);
+    With a 25% chance, a blackout symbol from CENSOR_CHARS is used (only once per word);
     otherwise, a random substitution from CENSOR_MAP is used.
     """
     letters = list(word)
@@ -97,7 +98,7 @@ def censor_word(word: str) -> str:
     if not eligible:
         return word
 
-    num_to_replace = min(random.choice([1,3]), len(eligible))
+    num_to_replace = min(random.choice([1, 3]), len(eligible))
     positions = random.sample(eligible, num_to_replace)
     used_blackout = False
     rc = random.choice  # local alias for speed
@@ -148,9 +149,21 @@ async def on_message(message: discord.Message):
             print(f"Failed to delete message: {err}")
             return
 
-        alert = f"{message.author.mention}, **Message censored.**\n`{censored_text}`"
+        # Create a rich embed for the response
+        embed = discord.Embed(
+            title="Message Censored",
+            description=f"Your message was censored:\n\n`{censored_text}`",
+            color=discord.Color.red(),
+            timestamp=datetime.utcnow()
+        )
+        embed.set_author(
+            name=message.author.display_name,
+            icon_url=message.author.avatar.url if message.author.avatar else None
+        )
+        embed.set_footer(text="tmkr")
+
         try:
-            await message.channel.send(alert)
+            await message.channel.send(content=message.author.mention, embed=embed)
         except discord.HTTPException as err:
             print(f"Failed to send censored message: {err}")
         return
