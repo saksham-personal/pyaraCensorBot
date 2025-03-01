@@ -45,7 +45,7 @@ OFFENSIVE_WORDS = [
     "acid", "lsd", "mdma", "heroine",
     "slut", "sluts",
     "kill yourself",
-    "mongool"
+    "mongool", "chud", "chuddie"
 ]
 
 # Blackout symbols (used only once per word if chosen)
