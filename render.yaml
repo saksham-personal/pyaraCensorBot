@@ -1,0 +1,8 @@
+# render.yaml
+services:
+  - name: pyaraCensorBot
+    type: worker       # This is the key: a background worker, not a web service
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python bot.py"
+    # No port needed because it's not a web service
